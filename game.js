@@ -116,55 +116,46 @@
       const mode = CAMERA_MODES[this.cameraModeIndex].id;
       const by = this.bird ? this.bird.y : WORLD.BIRD_START_Y;
       const vy = this.bird ? this.bird.vy : 0;
+      const isPlaying = this.state === "playing";
+      const bank = isPlaying ? Math.max(-0.028, Math.min(0.028, vy * 0.0024)) : 0;
+      const fovBoost = isPlaying ? this.scoreFovKick * 3.0 : 0;
 
-      // Gentle cinematic establishing drift on ready screen
-      if (this.state === "ready") {
-        const sway = Math.sin(this.time * 0.65);
-        return {
-          pos: [5.8 + sway * 1.1, 4.7 + Math.cos(this.time * 0.5) * 0.35, 6.8 - Math.abs(sway) * 0.5],
-          target: [0.0, 5.1, -4.6],
-          fov: 49,
-          roll: sway * 0.018,
-        };
-      }
-
-      // Subtle dramatic orbit after collision
-      if (this.state === "dying" || this.state === "gameover") {
-        const orbit = Math.min(1, this.deadTimer * 0.65);
-        return {
-          pos: [5.6 + Math.sin(this.deadTimer * 0.5) * 0.9, 3.8 + orbit * 0.8, 6.6 + orbit * 1.2],
-          target: [0.0, Math.max(1.2, by * 0.7 + 0.6), -1.8],
-          fov: 48,
-          roll: 0.012,
-        };
-      }
-
-      const bank = Math.max(-0.028, Math.min(0.028, vy * 0.0024));
-      const fovBoost = this.scoreFovKick * 3.0;
-
+      // Base rig strictly follows the active camera selection across all menus & gameplay
+      let pos, target, fov, roll;
       if (mode === "side") {
-        return {
-          pos: [13.6, 5.15, 1.9],
-          target: [0.0, 4.9, -4.4],
-          fov: 45 + fovBoost * 0.6,
-          roll: 0,
-        };
+        pos = [13.6, 5.15, 1.9];
+        target = [0.0, 4.9, -4.4];
+        fov = 45 + fovBoost * 0.6;
+        roll = 0;
+      } else if (mode === "behind") {
+        const previewY = this.state === "gameover" ? WORLD.BIRD_START_Y * 0.65 + by * 0.35 : by;
+        pos = [0.0, Math.max(2.2, previewY * 0.56 + 2.55), 6.6];
+        target = [0.0, Math.max(2.1, previewY * 0.62 + 1.85), -14.5];
+        fov = 57 + fovBoost;
+        roll = bank * 0.8;
+      } else {
+        // 3/4 Chase (default)
+        pos = [6.4, 4.4 + (by - 5.0) * 0.24, 7.6];
+        target = [0.0, 4.6 + (by - 5.0) * 0.28, -5.4];
+        fov = 51 + fovBoost;
+        roll = bank;
       }
-      if (mode === "behind") {
-        return {
-          pos: [0.0, Math.max(2.1, by * 0.56 + 2.55), 6.6],
-          target: [0.0, Math.max(2.1, by * 0.62 + 1.85), -14.5],
-          fov: 57 + fovBoost,
-          roll: bank * 0.8,
-        };
+
+      // Subtle breathing motion in menus while preserving exact camera preview angle
+      if (this.state === "ready") {
+        const sway = Math.sin(this.time * 0.7);
+        const lift = Math.cos(this.time * 0.55);
+        pos[0] += mode === "behind" ? sway * 0.22 : sway * 0.35;
+        pos[1] += lift * 0.16;
+        roll += sway * 0.009;
+      } else if (this.state === "dying" || this.state === "gameover") {
+        const drift = Math.sin(this.deadTimer * 0.55);
+        pos[0] += mode === "behind" ? drift * 0.25 : drift * 0.4;
+        pos[2] += 0.65;
+        fov -= 1.5;
       }
-      // 3/4 Chase (default)
-      return {
-        pos: [6.4, 4.4 + (by - 5.0) * 0.24, 7.6],
-        target: [0.0, 4.6 + (by - 5.0) * 0.28, -5.4],
-        fov: 51 + fovBoost,
-        roll: bank,
-      };
+
+      return { pos, target, fov, roll };
     }
 
     _resize() {
@@ -477,7 +468,10 @@
         pop.y += 1.6 * rawDt;
       }
 
-      if (this.state === "paused") return;
+      if (this.state === "paused") {
+        this._updateCamera(rawDt);
+        return;
+      }
 
       if (this.state === "ready") {
         this.scrollZ += WORLD.PIPE_SPEED * 0.65 * rawDt;
