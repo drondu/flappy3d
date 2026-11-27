@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Flappy Bird 3D</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <h1>Flappy Bird 3D</h1>
+      </div>
+      <div class="controls">
+        <div class="stat-pill" title="Current Score">
+          <span class="stat-label">Score</span>
+          <span id="hud-score" class="stat-value">0</span>
+        </div>
+        <div class="stat-pill" title="Personal Best">
+          <span class="stat-label">Best</span>
+          <span id="hud-best" class="stat-value">0</span>
+        </div>
+        <button id="btn-camera" class="icon-btn" type="button" title="Cycle 3D Camera (C)">
+          Cam: 3/4 Chase
+        </button>
+        <button id="btn-theme" class="icon-btn" type="button" title="Cycle Sky Theme (T)">
+          Sky: Auto
+        </button>
+        <button id="btn-pause" class="icon-btn" type="button" title="Pause / Resume (P)">
+          Pause
+        </button>
+        <button id="btn-mute" class="icon-btn" type="button" title="Mute / Unmute Sound (M)">
+          Sound: On
+        </button>
+      </div>
+    </header>
+
+    <section class="stage-wrap">
+      <canvas
+        id="gl-canvas"
+        width="800"
+        height="500"
+        role="img"
+        aria-label="Flappy Bird 3D WebGL canvas"
+        tabindex="0"
+      ></canvas>
+      <canvas
+        id="hud-canvas"
+        width="800"
+        height="500"
+        aria-hidden="true"
+      ></canvas>
+    </section>
+
+    <footer class="hints">
+      <span><kbd>Space</kbd> / <kbd>↑</kbd> / Click to flap</span>
+      <span><kbd>C</kbd> Camera angle</span>
+      <span><kbd>T</kbd> Sky theme</span>
+      <span><kbd>P</kbd> Pause</span>
+      <span><kbd>M</kbd> Mute</span>
+    </footer>
+  </main>
+
+  <script src="audio.js"></script>
+  <script src="renderer3d.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
